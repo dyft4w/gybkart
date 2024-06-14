@@ -1,0 +1,28 @@
+{
+    "surfaces":[
+        {
+        "name":"Map1",
+        "path":"images/map1_fix.png",
+        },
+        {
+        "name":"Map2",
+        "path":"images/map2_fix.png",
+        },
+        {
+        "name":"Map3",
+        "path":"images/map2_fix.png",
+        },
+        {
+        "name":"NormalMap1",
+        "path":"images/normalmap1.png",
+        },
+        {
+        "name":"NormalMap2",
+        "path":"images/map1_fix.png",
+        },
+        {
+        "name":"NormalMap3",
+        "path":"images/map1_fix.png",
+        },
+    ],
+}
