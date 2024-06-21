@@ -1,5 +1,6 @@
 #include "includes.h"
 #include "vk_main.h"
+#include <ios>
 //constexpr int SCALE=1;
 
 // window and its master surface
@@ -33,7 +34,11 @@ void loadColor(int r, int g, int b){
 }
 void loadSurfaces(){
   std::string temp=std::string(ASSET_PATH);
-  std::ifstream f(temp+"inventory.json"); 
+  std::fstream f(temp+"inventory.json", std::ios::in); 
+  std::cout << temp+"inventory.json";
+  std::string s;
+  f >> s;
+  std::cout << s << std::endl;
   nlohmann::json data = nlohmann::json::parse(f);
   for(auto &i : data["surfaces"]){
     asset_surfaces[i["name"]] = IMG_Load((temp+std::string(i["path"])).c_str());
@@ -43,7 +48,7 @@ void loadSurfaces(){
 
 bool init(){
 	bool success=true;
-  loadSurfaces();
+  //loadSurfaces();
 	if(SDL_Init(SDL_INIT_VIDEO)<0){
 		std::cerr << "error : could not start sdl context" << std::endl;
 		success=false;

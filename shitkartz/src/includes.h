@@ -20,6 +20,9 @@
 #include <deque>
 #include <map>
 #include <set>
+#include <cstddef>
+#include <limits>
+#include <memory>
 // self explanatory
 constexpr char NAME[] = "Shitkartz";
 constexpr uint32_t SCREEN_HEIGHT=256;
