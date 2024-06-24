@@ -21,8 +21,10 @@ public class Menu extends World
         ChangeWorld map1 = new ChangeWorld(new GreenfootImage("../images/button1.png"), new Map1());
         addObject(map1, 60, 130);
         ChangeWorld map2 = new ChangeWorld(new GreenfootImage("../images/button2.png"), new Map2());
-        addObject(map2, 60, 165);
+        addObject(map2, 170, 130);
+        ChangeWorld map3 = new ChangeWorld(new GreenfootImage("../images/button3.png"), new Map3());
+        addObject(map3, 60, 165);
         Quit quit = new Quit(new GreenfootImage("../images/quit.png"));
         addObject(quit, 60, 200);
     }
-}
+ }

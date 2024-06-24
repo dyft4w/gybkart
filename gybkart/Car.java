@@ -55,6 +55,9 @@ public class Car extends Actor
         if(_current_map.getClass()==Map2.class){
             _current_normal_map = (NormalMap) new NormalMap2();
         }
+        if(_current_map.getClass()==Map3.class){
+            _current_normal_map = (NormalMap) new NormalMap3();
+        }
         setCoords(_current_map.getDefaultCoords()[0], _current_map.getDefaultCoords()[1]);
     }
     private void end(){
