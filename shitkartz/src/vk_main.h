@@ -21,6 +21,7 @@ private:
   VkExtent2D *m_swapchain_extent;
   size_t *m_main_device_index;
   VkSurfaceKHR *m_vk_surface;
+  VkPipelineLayout *m_pipeline_layout;
   
   // do touch
   const std::vector<const char *> m_device_extensions = {

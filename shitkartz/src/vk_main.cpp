@@ -1,4 +1,5 @@
 #include "vk_main.h"
+#include <vulkan/vulkan_core.h>
 VkEngine::VkEngine(SDL_Window *w, bool use_dedicated){
   m_use_dedicated = use_dedicated;
   m_window = w;
@@ -168,6 +169,7 @@ bool VkEngine::pickPhysical(){
   return true;
 }
 void VkEngine::cleanup(){
+  vkDestroyPipelineLayout(*m_vk_device, *m_pipeline_layout, nullptr);
   for(auto i : *m_image_views){
     vkDestroyImageView(*m_vk_device, i, nullptr);
   }
@@ -316,11 +318,20 @@ bool VkEngine::createImageViews(){
   return true;
 }
 bool VkEngine::createGraphicsPipeline(){
-  // VkPipelineShaderStageCreateInfo vert_create_info{};
-  // VkPipelineShaderStageCreateInfo frag_create_info{};
   VkPipelineShaderStageCreateInfo shader_stage_create_info[2]{};
   VkPipelineDynamicStateCreateInfo dynamic_create_info{};
   VkPipelineVertexInputStateCreateInfo vertex_input_create_info{};
+  VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info{};
+  VkPipelineViewportStateCreateInfo viewport_state_create_info{};
+  VkPipelineRasterizationStateCreateInfo rasterizer_create_info{};
+  VkPipelineMultisampleStateCreateInfo msaa_create_info{};
+  VkPipelineColorBlendAttachmentState color_blend_attachment{};
+  VkPipelineColorBlendStateCreateInfo color_blend_create_info{};
+  VkPipelineLayoutCreateInfo layout_create_info{};
+  m_pipeline_layout = new VkPipelineLayout();
+
+  VkViewport viewport{};
+  VkRect2D scissor{};
   auto psv_vert = util::readFile("vert.psv");
   auto psv_frag = util::readFile("frag.psv");
 
@@ -358,6 +369,55 @@ bool VkEngine::createGraphicsPipeline(){
   vertex_input_create_info.vertexAttributeDescriptionCount = 0;
   vertex_input_create_info.pVertexAttributeDescriptions = nullptr;
 
+  input_assembly_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+  input_assembly_create_info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  input_assembly_create_info.primitiveRestartEnable = VK_FALSE;
+
+  viewport.x=0.0f;
+  viewport.y=0.0f;
+  viewport.width=(float) m_swapchain_extent->width;
+  viewport.height=(float) m_swapchain_extent->height;
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  scissor.offset = {0,0};
+  scissor.extent = *m_swapchain_extent;
+
+  viewport_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewport_state_create_info.scissorCount = 1;
+  viewport_state_create_info.pScissors = &scissor;
+  viewport_state_create_info.viewportCount = 1;
+  viewport_state_create_info.pViewports = &viewport;
+
+  rasterizer_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterizer_create_info.depthClampEnable = VK_FALSE;
+  rasterizer_create_info.rasterizerDiscardEnable = VK_FALSE;
+  rasterizer_create_info.polygonMode = VK_POLYGON_MODE_FILL;
+  rasterizer_create_info.lineWidth = 1.0f;
+  rasterizer_create_info.cullMode = VK_CULL_MODE_BACK_BIT;
+  rasterizer_create_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  rasterizer_create_info.depthBiasEnable = VK_FALSE;
+  
+  msaa_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  msaa_create_info.sampleShadingEnable = VK_FALSE;
+  msaa_create_info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+  
+  color_blend_attachment.blendEnable = VK_FALSE;
+  color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_A_BIT | VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
+
+  color_blend_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  color_blend_create_info.logicOpEnable = VK_FALSE;
+  color_blend_create_info.logicOp = VK_LOGIC_OP_COPY;
+  color_blend_create_info.attachmentCount = 1;
+  color_blend_create_info.pAttachments = &color_blend_attachment;
+
+  layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+  if(vkCreatePipelineLayout(*m_vk_device, &layout_create_info, nullptr, m_pipeline_layout)!=VK_SUCCESS){
+    std::cerr << "failed to create pipeline\n";
+    return false;
+  }
+
   vkDestroyShaderModule(*m_vk_device, shader_vert_opt.value(), nullptr);
   vkDestroyShaderModule(*m_vk_device, shader_frag_opt.value(), nullptr);
   return true;
@@ -366,7 +426,7 @@ bool VkEngine::initVulkan(){
   if(m_enable_val_lay || !checkLayerSupport()){
     std::cerr << "avail lay\n";
   }
-  if(!createInstance() || !createSurface() || !pickPhysical() || !createLogical() || !createSwapChain() || !createImageViews() || !createGraphicsPipeline()){
+  if(!createInstance() || !createSurface() || !pickPhysical() || !createLogical() || !createSwapChain() || !createImageViews() || !createRenderPass() || !createGraphicsPipeline()){
     return false;
   }
   return true;
